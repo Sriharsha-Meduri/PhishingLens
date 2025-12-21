@@ -1,0 +1,17 @@
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 27 modules transformed.
+[31mx[39m Build failed in 1.06s
+[31merror during build:
+[31m[vite:css] [postcss] C:/Users/Karthikeya Dusi/Desktop/phishinglens-frontend/src/styles/index.css:57:3: The `from-brand-300` class does not exist. If `from-brand-300` is a custom class, make sure it is defined within a `@layer` directive.[31m
+file: [36mC:/Users/Karthikeya Dusi/Desktop/phishinglens-frontend/src/styles/index.css:57:2[31m
+    at Input.error (C:\Users\Karthikeya Dusi\Desktop\phishinglens-frontend\node_modules\postcss\lib\input.js:135:16)
+    at AtRule.error (C:\Users\Karthikeya Dusi\Desktop\phishinglens-frontend\node_modules\postcss\lib\node.js:146:32)
+    at processApply (C:\Users\Karthikeya Dusi\Desktop\phishinglens-frontend\node_modules\tailwindcss\lib\lib\expandApplyAtRules.js:380:29)
+    at C:\Users\Karthikeya Dusi\Desktop\phishinglens-frontend\node_modules\tailwindcss\lib\lib\expandApplyAtRules.js:551:9
+    at C:\Users\Karthikeya Dusi\Desktop\phishinglens-frontend\node_modules\tailwindcss\lib\processTailwindFeatures.js:55:50
+    at async plugins (C:\Users\Karthikeya Dusi\Desktop\phishinglens-frontend\node_modules\tailwindcss\lib\plugin.js:38:17)
+    at async LazyResult.runAsync (C:\Users\Karthikeya Dusi\Desktop\phishinglens-frontend\node_modules\postcss\lib\lazy-result.js:293:11)
+    at async compileCSS (file:///C:/Users/Karthikeya%20Dusi/Desktop/phishinglens-frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:36898:21)
+    at async Object.transform (file:///C:/Users/Karthikeya%20Dusi/Desktop/phishinglens-frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:36171:11)
+    at async transform (file:///C:/Users/Karthikeya%20Dusi/Desktop/phishinglens-frontend/node_modules/rollup/dist/es/shared/node-entry.js:21149:16)[39m

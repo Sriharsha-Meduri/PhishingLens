@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.08), transparent 50%),
+    radial-gradient(circle at 0% 50%, rgba(56, 189, 248, 0.06), transparent 40%),
+    radial-gradient(circle at 100% 50%, rgba(147, 51, 234, 0.04), transparent 40%);
+  background-attachment: fixed;
+  color: #0f172a;
+}
+
+/* Dark mode */
+.dark body {
+  background-color: #020617;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.15), transparent 50%),
+    radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.1), transparent 40%),
+    radial-gradient(circle at 100% 0%, rgba(2, 132, 199, 0.1), transparent 40%);
+  color: #e2e8f0;
+}
+
+/* Glass surface - Light mode (default) */
+.glass-surface {
+  @apply backdrop-blur-xl shadow-xl transition-all duration-300;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.05),
+    0 4px 6px -2px rgba(0, 0, 0, 0.03),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+/* Glass surface - Dark mode */
+.dark .glass-surface {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Hover states - Light mode */
+.glass-surface:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  box-shadow:
+    0 20px 30px -10px rgba(14, 165, 233, 0.15),
+    0 10px 15px -5px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+}
+
+/* Hover states - Dark mode */
+.dark .glass-surface:hover {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 dark:focus-visible:ring-offset-slate-950;
+}
+
+.btn-primary {
+  @apply focus-ring inline-flex items-center justify-center rounded-full bg-gradient-to-r from-brand-500 to-brand-700 px-6 py-3 text-base font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-brand-500/25;
+}
+
+.probability-bar {
+  @apply relative h-2 w-full overflow-hidden rounded-full;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent;
+}
+
+.text-gradient-brand {
+  @apply bg-gradient-to-r from-brand-300 to-brand-500 bg-clip-text text-transparent;
+}

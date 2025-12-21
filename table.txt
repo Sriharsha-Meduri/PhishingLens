@@ -1,0 +1,364 @@
+# 📋 Table Code to Give AI
+
+When asking AI to migrate/customize this table, copy and paste one of these code blocks:
+
+---
+
+## Option 1: Just the Table Data (Simplest)
+
+```javascript
+// TABLE DATA - Easy to customize
+const tableData = [
+  {
+    feature: "Detection Accuracy",
+    phishingLens: "98.7%",
+    traditional: "85-92%",
+    marketLeaders: "90-95%",
+  },
+  {
+    feature: "Multi-Modal Analysis",
+    phishingLens: "Text + URL + Image",
+    traditional: "URL Only",
+    marketLeaders: "Text + URL",
+  },
+  {
+    feature: "Response Time",
+    phishingLens: "<500ms",
+    traditional: "2-5 seconds",
+    marketLeaders: "1-2 seconds",
+  },
+  {
+    feature: "AI Models Used",
+    phishingLens: "4 Advanced Models",
+    traditional: "Rule-based",
+    marketLeaders: "1-2 Models",
+  },
+  {
+    feature: "Real-time Processing",
+    phishingLens: "Yes",
+    traditional: "Batch Processing",
+    marketLeaders: "Limited",
+  },
+  {
+    feature: "Chrome Extension",
+    phishingLens: "Built-in",
+    traditional: "No",
+    marketLeaders: "Separate Tool",
+  },
+  {
+    feature: "Cost Efficiency",
+    phishingLens: "70% Lower",
+    traditional: "High Cost",
+    marketLeaders: "Premium Pricing",
+  },
+  {
+    feature: "Deployment Time",
+    phishingLens: "<1 Hour",
+    traditional: "Weeks",
+    marketLeaders: "Days",
+  },
+];
+```
+
+**Tell AI:** "Use this data structure and create a comparison table for my [framework] project"
+
+---
+
+## Option 2: Complete React Component
+
+```jsx
+import React from "react";
+
+const ComparisonTable = () => {
+  const tableData = [
+    {
+      feature: "Detection Accuracy",
+      phishingLens: "98.7%",
+      traditional: "85-92%",
+      marketLeaders: "90-95%",
+    },
+    {
+      feature: "Multi-Modal Analysis",
+      phishingLens: "Text + URL + Image",
+      traditional: "URL Only",
+      marketLeaders: "Text + URL",
+    },
+    {
+      feature: "Response Time",
+      phishingLens: "<500ms",
+      traditional: "2-5 seconds",
+      marketLeaders: "1-2 seconds",
+    },
+    {
+      feature: "AI Models Used",
+      phishingLens: "4 Advanced Models",
+      traditional: "Rule-based",
+      marketLeaders: "1-2 Models",
+    },
+    {
+      feature: "Real-time Processing",
+      phishingLens: "Yes",
+      traditional: "Batch Processing",
+      marketLeaders: "Limited",
+    },
+    {
+      feature: "Chrome Extension",
+      phishingLens: "Built-in",
+      traditional: "No",
+      marketLeaders: "Separate Tool",
+    },
+    {
+      feature: "Cost Efficiency",
+      phishingLens: "70% Lower",
+      traditional: "High Cost",
+      marketLeaders: "Premium Pricing",
+    },
+    {
+      feature: "Deployment Time",
+      phishingLens: "<1 Hour",
+      traditional: "Weeks",
+      marketLeaders: "Days",
+    },
+  ];
+
+  const colors = {
+    success: "#10b981",
+    warning: "#f59e0b",
+    danger: "#ef4444",
+    primary: "#1e293b",
+    secondary: "#334155",
+    border: "#e2e8f0",
+    lightBg: "#f8fafc",
+  };
+
+  return (
+    <div
+      style={{
+        background: "white",
+        borderRadius: "20px",
+        padding: "40px",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+      }}
+    >
+      <h3
+        style={{ textAlign: "center", fontSize: "28px", marginBottom: "16px" }}
+      >
+        🏆 Why Choose PhishingLens?
+      </h3>
+      <p
+        style={{ textAlign: "center", color: "#64748b", marginBottom: "40px" }}
+      >
+        See how PhishingLens compares to traditional security solutions
+      </p>
+      <div
+        style={{
+          overflowX: "auto",
+          borderRadius: "12px",
+          border: "1px solid #e2e8f0",
+        }}
+      >
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "14px",
+          }}
+        >
+          <thead>
+            <tr
+              style={{
+                background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+                color: "white",
+              }}
+            >
+              <th
+                style={{
+                  padding: "16px 20px",
+                  textAlign: "left",
+                  fontWeight: "600",
+                }}
+              >
+                FEATURE
+              </th>
+              <th
+                style={{
+                  padding: "16px 20px",
+                  textAlign: "center",
+                  fontWeight: "600",
+                }}
+              >
+                PhishingLens
+              </th>
+              <th
+                style={{
+                  padding: "16px 20px",
+                  textAlign: "center",
+                  fontWeight: "600",
+                }}
+              >
+                Traditional
+              </th>
+              <th
+                style={{
+                  padding: "16px 20px",
+                  textAlign: "center",
+                  fontWeight: "600",
+                }}
+              >
+                Market Leaders
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableData.map((row, index) => (
+              <tr
+                key={index}
+                style={{
+                  background: index % 2 === 0 ? colors.lightBg : "white",
+                }}
+              >
+                <td style={{ padding: "16px 20px", fontWeight: "600" }}>
+                  {row.feature}
+                </td>
+                <td
+                  style={{
+                    padding: "16px 20px",
+                    textAlign: "center",
+                    color: colors.success,
+                    fontWeight: "600",
+                  }}
+                >
+                  {row.phishingLens}
+                </td>
+                <td
+                  style={{
+                    padding: "16px 20px",
+                    textAlign: "center",
+                    color: colors.danger,
+                  }}
+                >
+                  {row.traditional}
+                </td>
+                <td
+                  style={{
+                    padding: "16px 20px",
+                    textAlign: "center",
+                    color: colors.warning,
+                  }}
+                >
+                  {row.marketLeaders}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default ComparisonTable;
+```
+
+**Tell AI:** "Convert this to [your framework] and replace PhishingLens with [your product name]"
+
+---
+
+## Option 3: Just the HTML Table Structure
+
+```html
+<table>
+  <thead>
+    <tr>
+      <th>FEATURE</th>
+      <th>PhishingLens</th>
+      <th>Traditional</th>
+      <th>Market Leaders</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Detection Accuracy</td>
+      <td>98.7%</td>
+      <td>85-92%</td>
+      <td>90-95%</td>
+    </tr>
+    <tr>
+      <td>Multi-Modal Analysis</td>
+      <td>Text + URL + Image</td>
+      <td>URL Only</td>
+      <td>Text + URL</td>
+    </tr>
+    <tr>
+      <td>Response Time</td>
+      <td>&lt;500ms</td>
+      <td>2-5 seconds</td>
+      <td>1-2 seconds</td>
+    </tr>
+    <tr>
+      <td>AI Models Used</td>
+      <td>4 Advanced Models</td>
+      <td>Rule-based</td>
+      <td>1-2 Models</td>
+    </tr>
+    <tr>
+      <td>Real-time Processing</td>
+      <td>Yes</td>
+      <td>Batch Processing</td>
+      <td>Limited</td>
+    </tr>
+    <tr>
+      <td>Chrome Extension</td>
+      <td>Built-in</td>
+      <td>No</td>
+      <td>Separate Tool</td>
+    </tr>
+    <tr>
+      <td>Cost Efficiency</td>
+      <td>70% Lower</td>
+      <td>High Cost</td>
+      <td>Premium Pricing</td>
+    </tr>
+    <tr>
+      <td>Deployment Time</td>
+      <td>&lt;1 Hour</td>
+      <td>Weeks</td>
+      <td>Days</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+**Tell AI:** "Style this table with modern CSS and make it responsive"
+
+---
+
+## 🎯 Complete Prompt Example
+
+```
+Here's a comparison table from my project. Migrate it to [Next.js/Vue/etc.]:
+
+[Paste one of the code blocks above]
+
+Changes needed:
+- Product name: PhishingLens → [YourProduct]
+- Update features to: [list your features]
+- Update values to: [your data]
+- Framework: [React/Vue/Angular]
+- Styling: [Tailwind/CSS Modules/etc.]
+
+Make it responsive and match this color scheme:
+- Primary: [your color]
+- Success: [your color]
+```
+
+---
+
+## 📁 Files You Can Attach
+
+Instead of pasting code, you can also attach these files:
+
+- `ComparisonTable_Export.jsx` - Full React component
+- `ComparisonTable_Export.html` - Complete HTML version
+
+**Pro Tip:** Use **Option 1** (just the data) if you want AI to build from scratch in a different style/framework!

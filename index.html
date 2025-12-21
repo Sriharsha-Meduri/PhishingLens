@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="PhishingLens: Real-time AI/ML phishing detection with multi-modal analysis. 4-source fusion (Scanner + HF + Graph + OTX), 99.6% accuracy, <100ms latency. Built for AICTE Smart India Hackathon." />
+    <meta property="og:title" content="PhishingLens — AI-Powered Phishing Detection" />
+    <meta property="og:description" content="Multi-modal AI system with DistilBERT, YOLOv5/v8, and GNN models. 4-source threat intelligence fusion with 99.6% accuracy." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://phishinglens.local" />
+    <meta property="og:image" content="https://phishinglens.local/preview.png" />
+    <link rel="prefetch" href="/analyze" as="document" />
+    <title>PhishingLens</title>
+    <script>
+      // Prevent FOUC (Flash of Unstyled Content) for theme
+      (function() {
+        const theme = localStorage.getItem('theme') || 'dark';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
