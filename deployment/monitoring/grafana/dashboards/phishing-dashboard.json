@@ -1,0 +1,34 @@
+{
+  "title": "Phishing Detection - Overview",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Gateway p95 latency",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 4 },
+      "targets": [
+        {"expr": "histogram_quantile(0.95, rate(phishing_detection_inference_duration_seconds_bucket{service=\"gateway\"}[5m]))"}
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "HTTP 5xx rate",
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 8 },
+      "targets": [
+        {"expr": "rate(http_requests_total{status=~\"5..\"}[5m])"}
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Service up",
+      "gridPos": { "x": 0, "y": 4, "w": 8, "h": 8 },
+      "targets": [
+        {"expr": "up"}
+      ]
+    }
+  ]
+}
+

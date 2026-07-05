@@ -1,0 +1,11 @@
+text,label,type
+Urgent: Your account will be suspended. Click here to verify.,1,email
+Update your password immediately to avoid account lockout.,1,email
+Your bank account has been compromised. Verify your identity now.,1,email
+Congratulations! You've won $1000. Click here to claim your prize.,1,email
+Verify your PayPal account to continue using our services.,1,email
+Your package has been shipped and will arrive tomorrow.,0,email
+Meeting scheduled for next Tuesday at 2 PM in conference room A.,0,email
+Thank you for your recent purchase. Your order is being processed.,0,email
+Your monthly statement is now available for download.,0,email
+Reminder: Your appointment is tomorrow at 10 AM.,0,email

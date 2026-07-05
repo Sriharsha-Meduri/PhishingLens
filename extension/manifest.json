@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "PhishingLens",
+  "version": "2.0.0",
+  "description": "Real-time AI phishing detection. Scan the current page, right-click any link or text, and get an explainable verdict.",
+  "permissions": ["activeTab", "contextMenus", "storage", "notifications"],
+  "host_permissions": ["http://localhost:8000/*", "https://*/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PhishingLens",
+    "default_icon": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+  },
+  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "background": { "service_worker": "background.js" }
+}

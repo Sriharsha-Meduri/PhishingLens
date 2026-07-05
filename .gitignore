@@ -1,0 +1,38 @@
+# Python cache and virtual environments
+__pycache__/
+*.pyc
+venv/
+backend/venv/
+backend/services/*/venv/
+
+# Temporary files
+tmp_*
+temp_*
+
+# SSH keys
+ubuntu@*
+
+# Extension production files
+extension-production/
+*.zip
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Secrets & local env
+.env
+*.pem
+*.key
+
+# Local model/hf caches
+serve/hf_cache/
+hf_cache/
+
+# Stray images
+WhatsApp*.jpg
+*.webp
+
+# Build output
+dist/
+frontend/dist/

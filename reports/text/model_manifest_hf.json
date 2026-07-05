@@ -1,0 +1,18 @@
+{
+  "model_id": "cybersectony/phishing-email-detection-distilbert_v2.4.1",
+  "timestamp": "2025-09-30T05:45:27Z",
+  "calibration": "temperature",
+  "latency_ms": {
+    "mean": 24.69097636640072,
+    "p95": 65.78749418258667
+  },
+  "hardware": {
+    "device": "cuda"
+  },
+  "model_params": 66956548,
+  "approx_model_memory_mb": 255.41896057128906,
+  "memory_rss_mb": {
+    "before": 851.98046875,
+    "after": 1107.53125
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Phishing Detection System Dashboard",
+    "tags": ["phishing", "ml", "security"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests/sec"
+          }
+        ],
+        "xAxes": [
+          {
+            "type": "time"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m])",
+            "legendFormat": "{{job}} - 5xx errors"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Errors/sec"
+          }
+        ],
+        "xAxes": [
+          {
+            "type": "time"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Model Accuracy",
+        "type": "singlestat",
+        "targets": [
+          {
+            "expr": "phishing_detection_model_accuracy",
+            "legendFormat": "Accuracy"
+          }
+        ],
+        "valueName": "current",
+        "format": "percent",
+        "thresholds": "0.8,0.9",
+        "colorBackground": true,
+        "colorValue": false,
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Inference Latency",
+        "type": "singlestat",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(phishing_detection_inference_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          }
+        ],
+        "valueName": "current",
+        "format": "s",
+        "thresholds": "0.05,0.1",
+        "colorBackground": true,
+        "colorValue": false,
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "container_memory_usage_bytes / container_spec_memory_limit_bytes",
+            "legendFormat": "{{pod}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Memory usage %",
+            "max": 1,
+            "min": 0
+          }
+        ],
+        "xAxes": [
+          {
+            "type": "time"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 12
+        }
+      },
+      {
+        "id": 6,
+        "title": "CPU Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total[5m]) / container_spec_cpu_quota",
+            "legendFormat": "{{pod}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "CPU usage %",
+            "max": 1,
+            "min": 0
+          }
+        ],
+        "xAxes": [
+          {
+            "type": "time"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      },
+      {
+        "id": 7,
+        "title": "Phishing Detection Results",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(phishing_detection_results_total{result=\"phishing\"}[5m])",
+            "legendFormat": "Phishing detected"
+          },
+          {
+            "expr": "rate(phishing_detection_results_total{result=\"legitimate\"}[5m])",
+            "legendFormat": "Legitimate"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Detections/sec"
+          }
+        ],
+        "xAxes": [
+          {
+            "type": "time"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 20
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 16,
+    "version": 1
+  }
+}

@@ -1,0 +1,345 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC for continuous learning
+    - cron: '0 2 * * *'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+        pip install pytest pytest-cov flake8 black isort
+    
+    - name: Lint with flake8
+      run: |
+        flake8 backend/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 backend/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Format check with black
+      run: black --check backend/
+    
+    - name: Import sorting check with isort
+      run: isort --check-only backend/
+    
+    - name: Test with pytest
+      run: |
+        pytest backend/ --cov=backend --cov-report=xml --cov-report=html
+      env:
+        PYTHONPATH: backend/
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  build:
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push Gateway image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: backend/services/gateway/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/gateway:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push Text Service image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: backend/services/text_service/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/text-service:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push URL Service image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: backend/services/url_service/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/url-service:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push Image Service image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: backend/services/image_service/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/image-service:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push Graph Service image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: backend/services/graph_service/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/graph-service:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push Continuous Learning image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: backend/services/continuous_learning/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/continuous-learning:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build and push Frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: frontend/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
+    
+    - name: Deploy to staging
+      run: |
+        kubectl apply -f deployment/k8s/
+        kubectl set image deployment/gateway gateway=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/gateway:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/text-service text-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/text-service:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/url-service url-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/url-service:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/image-service image-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/image-service:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/graph-service graph-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/graph-service:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/continuous-learning continuous-learning=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/continuous-learning:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} -n phishing-detection
+    
+    - name: Wait for rollout
+      run: |
+        kubectl rollout status deployment/gateway -n phishing-detection
+        kubectl rollout status deployment/text-service -n phishing-detection
+        kubectl rollout status deployment/url-service -n phishing-detection
+        kubectl rollout status deployment/image-service -n phishing-detection
+        kubectl rollout status deployment/graph-service -n phishing-detection
+        kubectl rollout status deployment/continuous-learning -n phishing-detection
+        kubectl rollout status deployment/frontend -n phishing-detection
+
+  deploy-production:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+    
+    - name: Deploy to production
+      run: |
+        kubectl apply -f deployment/k8s/
+        kubectl set image deployment/gateway gateway=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/gateway:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/text-service text-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/text-service:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/url-service url-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/url-service:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/image-service image-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/image-service:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/graph-service graph-service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/graph-service:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/continuous-learning continuous-learning=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/continuous-learning:${{ github.sha }} -n phishing-detection
+        kubectl set image deployment/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} -n phishing-detection
+    
+    - name: Wait for rollout
+      run: |
+        kubectl rollout status deployment/gateway -n phishing-detection
+        kubectl rollout status deployment/text-service -n phishing-detection
+        kubectl rollout status deployment/url-service -n phishing-detection
+        kubectl rollout status deployment/image-service -n phishing-detection
+        kubectl rollout status deployment/graph-service -n phishing-detection
+        kubectl rollout status deployment/continuous-learning -n phishing-detection
+        kubectl rollout status deployment/frontend -n phishing-detection
+    
+    - name: Run smoke tests
+      run: |
+        # Wait for services to be ready
+        sleep 60
+        
+        # Test gateway health
+        kubectl run test-pod --image=curlimages/curl --rm -i --restart=Never -- curl -f http://gateway-service:8000/health
+        
+        # Test text service health
+        kubectl run test-pod --image=curlimages/curl --rm -i --restart=Never -- curl -f http://text-service:8001/health
+
+  continuous-learning:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+    
+    - name: Run continuous learning
+      run: |
+        cd backend
+        python services/continuous_learning.py
+      env:
+        OTX_API_KEY: ${{ secrets.OTX_API_KEY }}
+        PHISHTANK_API_KEY: ${{ secrets.PHISHTANK_API_KEY }}
+        MISP_API_KEY: ${{ secrets.MISP_API_KEY }}
+        MISP_URL: ${{ secrets.MISP_URL }}
+        NOTIFICATION_WEBHOOK: ${{ secrets.NOTIFICATION_WEBHOOK }}
+
+  model-training:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+    
+    - name: Fetch training data
+      run: |
+        cd data/scripts
+        python fetch_demo_data.py
+      env:
+        OTX_API_KEY: ${{ secrets.OTX_API_KEY }}
+        PHISHTANK_API_KEY: ${{ secrets.PHISHTANK_API_KEY }}
+    
+    - name: Train text model
+      run: |
+        cd backend/services/text_service
+        python train.py
+    
+    - name: Export ONNX models
+      run: |
+        cd backend/services/text_service
+        python export_onnx.py
+    
+    - name: Upload trained models
+      uses: actions/upload-artifact@v3
+      with:
+        name: trained-models
+        path: models/
+        retention-days: 30

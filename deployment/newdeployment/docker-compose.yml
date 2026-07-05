@@ -1,0 +1,92 @@
+
+
+services:
+  gateway:
+    build:
+      context: ../..
+      dockerfile: backend/services/gateway/Dockerfile
+    environment:
+      TEXT_SERVICE_URL: http://text:8001
+      URL_SERVICE_URL: http://url:8002
+      IMAGE_SERVICE_URL: http://image:8003
+      GRAPH_SERVICE_URL: http://graph:8004
+    ports:
+      - "8000:8000"
+    depends_on:
+      - text
+
+  text:
+    image: yourdockerhubusername/phishinglens-text:latest
+    environment:
+      SERVICE_MODEL_ID: cybersectony/phishing-email-detection-distilbert_v2.4.1
+      SERVICE_FALLBACK_MODEL_ID: /models/text/model
+      SERVICE_USE_EXTERNAL_THRESHOLD: "true"
+      EXTERNAL_TEXT_PROFILE: demo
+      EXTERNAL_TEXT_THRESHOLD: "0.95"
+      SHORT_TEXT_MIN_TOKENS: "3"
+      SHORT_TEXT_HIGH_THRESHOLD: "0.999"
+      EXTERNAL_CALIB_T: "1.90"
+      ORT_PROVIDERS: CPUExecutionProvider
+      URL_SERVICE_URL: http://url:8002
+    ports:
+      - "8001:8001"
+
+  # Optional minimal URL/Image/Graph services (uncomment to enable)
+  url:
+    image: sriharshameduri07/phishinglens-url:latest
+    environment:
+      EXTERNAL_URL_T_HF: "0.6"
+      # Fusion system configuration
+      FUSION_K: "2"
+      FUSION_WEIGHTS: "graph:1.0,scanner:1.0,hf:0.8,otx:1.0"
+      T_SCAN: "0.29"
+      T_HF: "0.74"
+      T_GRAPH: "0.80"
+      OTX_BASEURL: "https://otx.alienvault.com/api/v1"
+      OTX_KEY: "89daa160ca2732951fcda18435dc939685a8ebd8aafda24951251abe88b6f7b7"
+      OTX_TIMEOUT_MS: "5000"
+      OTX_CACHE_TTL_H: "48"
+      ALLOWLIST_DOMAINS: "youtube.com,*.gov.in"
+      VERSION_TAG: "fusion-4src-k2-v1"
+      FEATURE_GRAPH_ENABLED: "true"
+      FEATURE_GRAPH_SYNTH_POSITIVE: "false"
+    ports:
+      - "8002:8002"
+    volumes:
+      - ../../data:/app/data:ro
+
+  image:
+    image: yourdockerhubusername/phishinglens-image:latest
+    environment:
+      FEATURE_BRAND_DETECTION: "true"
+      FEATURE_VISUAL_CHECKS: "true"
+      FEATURE_URL_EXTRACTION: "true"
+      FEATURE_URL_FUSION_INTEGRATION: "true"
+      BRAND_MODEL_VARIANT: "yolov5s"
+      OCR_ENGINE: "tesseract"
+      TIMEOUT_MS: "1200"
+    ports:
+      - "8003:8003"
+
+  # graph:
+  #   build:
+  #     context: ../..
+  #     dockerfile: backend/services/graph_service/Dockerfile
+  #   ports:
+  #     - "8004:8004"
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: frontend/Dockerfile
+    environment:
+      VITE_GATEWAY_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - gateway
+
+networks:
+  default:
+    name: newdeployment_net
+

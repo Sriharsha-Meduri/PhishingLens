@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    :root { --ink:#070b16; --panel:#0d1424; --line:#1e2b45; --brand:#38bdf8;
+            --safe:#10b981; --warn:#f59e0b; --danger:#f43f5e; --mut:#94a3b8; }
+    * { box-sizing: border-box; margin: 0; }
+    body { width: 360px; font-family: 'Inter', system-ui, sans-serif; background: var(--ink); color: #e2e8f0; }
+    .head { display:flex; align-items:center; gap:8px; padding:14px 16px; border-bottom:1px solid var(--line);
+            font-weight:800; font-size:16px; }
+    .head .brand { color: var(--brand); }
+    .body { padding: 14px 16px; }
+    .label { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--mut); margin-bottom:6px; }
+    .url { font-family: 'JetBrains Mono', monospace; font-size:12px; color:#cbd5e1; word-break:break-all;
+           background:#0a1020; border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+    textarea { width:100%; height:70px; resize:none; margin-top:10px; background:#0a1020; border:1px solid var(--line);
+               border-radius:8px; color:#e2e8f0; padding:8px 10px; font-size:12px; font-family:inherit; outline:none; }
+    textarea:focus { border-color: var(--brand); }
+    .row { display:flex; gap:8px; margin-top:10px; }
+    button { flex:1; padding:9px; border:none; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer;
+             background: var(--brand); color: var(--ink); }
+    button.ghost { background:#12203a; color:#cbd5e1; border:1px solid var(--line); }
+    button:disabled { opacity:.5; cursor:default; }
+    .result { margin-top:14px; border:1px solid var(--line); border-radius:12px; overflow:hidden; display:none; }
+    .result.show { display:block; }
+    .verdict { display:flex; align-items:center; gap:10px; padding:12px 14px; }
+    .badge { font-size:22px; }
+    .vtext { font-weight:800; font-size:15px; }
+    .risk { margin-left:auto; font-weight:800; font-size:18px; }
+    .sub { padding:0 14px 8px; font-size:11px; color:var(--mut); word-break:break-all; }
+    .signals { border-top:1px solid var(--line); padding:10px 14px; }
+    .sig { display:flex; gap:8px; align-items:flex-start; font-size:12px; color:#cbd5e1; margin:5px 0; }
+    .dot { width:7px; height:7px; border-radius:50%; margin-top:5px; flex:none; }
+    .foot { padding:10px 16px; border-top:1px solid var(--line); text-align:center; }
+    .foot a { color: var(--brand); font-size:12px; text-decoration:none; }
+    .spin { text-align:center; color:var(--mut); font-size:12px; padding:14px; display:none; }
+  </style>
+</head>
+<body>
+  <div class="head"><span>🛡️</span> Phishing<span class="brand">Lens</span></div>
+  <div class="body">
+    <div class="label">Current page</div>
+    <div class="url" id="pageUrl">-</div>
+    <div class="row"><button id="scanPage">Scan this page</button></div>
+
+    <div class="label" style="margin-top:16px;">Or paste an email, SMS, or link</div>
+    <textarea id="text" placeholder="Paste suspicious content here…"></textarea>
+    <div class="row"><button id="scanText" class="ghost">Analyze text</button></div>
+
+    <div class="spin" id="spin">Analyzing…</div>
+    <div class="result" id="result"></div>
+  </div>
+  <div class="foot"><a id="openApp" href="https://github.com/Sriharsha-Meduri/PhishingLens" target="_blank">Open the full PhishingLens app →</a></div>
+  <script src="config.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: phishing-detection-ingress
+  namespace: phishing-detection
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  tls:
+  - hosts:
+    - phishing-detection.yourdomain.com
+    secretName: phishing-detection-tls
+  rules:
+  - host: phishing-detection.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gateway-service
+            port:
+              number: 8000
+      - path: /api/text
+        pathType: Prefix
+        backend:
+          service:
+            name: text-service
+            port:
+              number: 8001
+      - path: /api/url
+        pathType: Prefix
+        backend:
+          service:
+            name: url-service
+            port:
+              number: 8002
+      - path: /api/image
+        pathType: Prefix
+        backend:
+          service:
+            name: image-service
+            port:
+              number: 8003
+      - path: /api/graph
+        pathType: Prefix
+        backend:
+          service:
+            name: graph-service
+            port:
+              number: 8004

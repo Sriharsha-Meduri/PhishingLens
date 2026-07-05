@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: phishing-detection-config
+  namespace: phishing-detection
+data:
+  # Service URLs
+  TEXT_SERVICE_URL: "http://text-service:8001"
+  URL_SERVICE_URL: "http://url-service:8002"
+  IMAGE_SERVICE_URL: "http://image-service:8003"
+  GRAPH_SERVICE_URL: "http://graph-service:8004"
+  
+  # Model paths
+  TEXT_ONNX_MODEL: "/models/text/distilbert.onnx"
+  TEXT_TOKENIZER_DIR: "/models/text/tokenizer"
+  IMAGE_ONNX_MODEL: "/models/image/mobilenet.onnx"
+  
+  # Performance settings
+  ORT_PROVIDERS: "CPUExecutionProvider"
+  MAX_BATCH_SIZE: "4"
+  INFERENCE_TIMEOUT: "5"
+  
+  # Logging
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"

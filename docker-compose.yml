@@ -1,0 +1,26 @@
+# PhishingLens - full local stack (consolidated API + web app).
+# Run:  docker compose up --build
+#   API  -> http://localhost:8000   (docs at /docs)
+#   Web  -> http://localhost:5173
+#
+# For the full 5-service microservice stack + monitoring instead, use
+# deployment/newdeployment/docker-compose.yml.
+services:
+  api:
+    build: ./serve
+    ports:
+      - "8000:7860"
+    environment:
+      - PORT=7860
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    restart: unless-stopped

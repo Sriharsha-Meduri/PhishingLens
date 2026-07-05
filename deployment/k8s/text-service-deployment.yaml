@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: text-service
+  namespace: phishing-detection
+  labels:
+    app: text-service
+    component: ml
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: text-service
+  template:
+    metadata:
+      labels:
+        app: text-service
+        component: ml
+    spec:
+      containers:
+      - name: text-service
+        image: phishing-detection/text-service:latest
+        ports:
+        - containerPort: 8001
+        env:
+        - name: TEXT_ONNX_MODEL
+          valueFrom:
+            configMapKeyRef:
+              name: phishing-detection-config
+              key: TEXT_ONNX_MODEL
+        - name: TEXT_TOKENIZER_DIR
+          valueFrom:
+            configMapKeyRef:
+              name: phishing-detection-config
+              key: TEXT_TOKENIZER_DIR
+        - name: ORT_PROVIDERS
+          valueFrom:
+            configMapKeyRef:
+              name: phishing-detection-config
+              key: ORT_PROVIDERS
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: phishing-detection-config
+              key: LOG_LEVEL
+        volumeMounts:
+        - name: models-volume
+          mountPath: /models
+          readOnly: true
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: models-volume
+        persistentVolumeClaim:
+          claimName: models-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: text-service
+  namespace: phishing-detection
+  labels:
+    app: text-service
+spec:
+  selector:
+    app: text-service
+  ports:
+  - port: 8001
+    targetPort: 8001
+    protocol: TCP
+  type: ClusterIP

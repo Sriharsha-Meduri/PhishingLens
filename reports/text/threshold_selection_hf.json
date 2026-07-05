@@ -1,0 +1,14 @@
+{
+  "threshold": 0.125,
+  "constraints": {
+    "recall_min": 0.6
+  },
+  "metrics": {
+    "macro_f1": 0.8958144236990853,
+    "precision": 0.9175419801765585,
+    "recall": 0.8886840468777251,
+    "accuracy": 0.9000127697612055
+  },
+  "model_id": "cybersectony/phishing-email-detection-distilbert_v2.4.1",
+  "dataset_path": "data\\holdout\\ceas08.csv"
+}
