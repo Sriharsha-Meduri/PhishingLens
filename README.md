@@ -1,5 +1,7 @@
 # 🛡️ PhishingLens
 
+> **Live:** [web app](https://sriharshameduri-phishinglens.static.hf.space) - [API](https://sriharshameduri-phishinglens-api.hf.space/health)
+
 Multi-modal phishing detection for the surfaces people actually get hit on: **email, SMS, and URLs**. PhishingLens pairs a fine-tuned DistilBERT text classifier with a lexical URL forensics engine behind one explainable API, and ships as a web app **and** a Chrome extension.
 
 Every verdict comes with a calibrated **risk score (0-100)**, a **phishing / suspicious / safe** label, and the exact **signals** that fired, never an opaque yes/no.
