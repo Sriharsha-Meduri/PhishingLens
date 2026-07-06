@@ -55,7 +55,7 @@ function ResultPanel({ data }) {
             <h3 className="font-display text-2xl font-bold" style={{ color: v.color }}>{v.label}</h3>
           </div>
           <p className="mt-1 text-slate-400 text-sm">
-            {data.type === 'url' ? 'URL analysis' : 'Message analysis'} ·
+            {({ url: 'URL analysis', domain: 'Domain intelligence', image: 'Image (OCR) analysis' }[data.type]) || 'Message analysis'} ·
             confidence {(data.confidence * 100).toFixed(0)}% ·
             <span className="font-mono text-slate-500"> {data.model || 'model'}</span>
           </p>
@@ -112,25 +112,39 @@ function ResultPanel({ data }) {
 /* ---------------- analyzer ---------------- */
 function Analyzer() {
   const [content, setContent] = useState('');
+  const [file, setFile] = useState(null);
   const [mode, setMode] = useState('auto');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
-  const boxRef = useRef(null);
+
+  const canRun = mode === 'image' ? !!file : !!content.trim();
 
   const run = async () => {
-    if (!content.trim()) return;
+    if (!canRun) return;
     setLoading(true); setErr(''); setData(null);
     try {
-      const res = await fetch(`${API}/analyze`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ content: content.trim(), mode }),
+      let url, body;
+      if (mode === 'image') {
+        const b64 = await new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(String(r.result).split(',')[1]);
+          r.onerror = rej;
+          r.readAsDataURL(file);
+        });
+        url = `${API}/analyze_image`; body = { image_base64: b64 };
+      } else if (mode === 'domain') {
+        url = `${API}/analyze_domain`; body = { domain: content.trim() };
+      } else {
+        url = `${API}/analyze`; body = { content: content.trim(), mode };
+      }
+      const res = await fetch(url, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error(`API ${res.status}`);
       setData(await res.json());
     } catch (e) {
-      setErr('Could not reach the analysis engine. Is the backend running?');
+      setErr('Could not reach the analysis engine. Please try again in a moment.');
     } finally {
       setLoading(false);
     }
@@ -139,30 +153,42 @@ function Analyzer() {
   return (
     <div id="analyzer" className="w-full max-w-2xl mx-auto">
       <div className="rounded-2xl border border-line glass p-5 sm:p-6 shadow-2xl shadow-black/40">
-        <div className="flex items-center gap-2 mb-4">
-          {[['auto', 'Auto-detect'], ['text', 'Email / SMS'], ['url', 'URL']].map(([m, label]) => (
-            <button key={m} onClick={() => setMode(m)}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {[['auto', 'Auto'], ['text', 'Email / SMS'], ['url', 'URL'], ['domain', 'Domain'], ['image', 'Image']].map(([m, label]) => (
+            <button key={m} onClick={() => { setMode(m); setData(null); }}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
                 mode === m ? 'bg-brand text-ink' : 'bg-white/5 text-slate-400 hover:text-slate-200'}`}>
               {label}
             </button>
           ))}
         </div>
-        <textarea ref={boxRef} value={content} onChange={(e) => setContent(e.target.value)}
-          placeholder="Paste a suspicious email, SMS, or URL…"
-          className="w-full h-32 resize-y rounded-xl bg-black/30 border border-line px-4 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none focus:border-brand transition" />
+        {mode === 'image' ? (
+          <label className="flex flex-col items-center justify-center h-32 rounded-xl bg-black/30 border border-dashed border-line cursor-pointer hover:border-brand transition text-center px-4">
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => setFile(e.target.files[0] || null)} />
+            <span className="text-2xl mb-1">🖼️</span>
+            <span className="text-sm text-slate-400">{file ? file.name : 'Upload a screenshot — login page, email, or scam SMS'}</span>
+          </label>
+        ) : (
+          <textarea value={content} onChange={(e) => setContent(e.target.value)}
+            placeholder={mode === 'domain' ? 'Enter a domain, e.g. paypal-secure-login.com' : 'Paste a suspicious email, SMS, or URL…'}
+            className="w-full h-32 resize-y rounded-xl bg-black/30 border border-line px-4 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none focus:border-brand transition" />
+        )}
         <div className="flex flex-wrap items-center gap-2 mt-3">
-          <button onClick={run} disabled={loading || !content.trim()}
+          <button onClick={run} disabled={loading || !canRun}
             className="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-deep text-ink font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed">
             {loading ? 'Analyzing…' : 'Analyze'}
           </button>
-          <span className="text-xs text-slate-600 mr-1">or try:</span>
-          {EXAMPLES.map((ex) => (
-            <button key={ex.label} onClick={() => { setContent(ex.value); setMode(ex.kind); setData(null); }}
-              className="px-2.5 py-1 rounded-full border border-line text-xs text-slate-400 hover:border-brand hover:text-brand transition">
-              {ex.label}
-            </button>
-          ))}
+          {mode !== 'image' && (
+            <>
+              <span className="text-xs text-slate-600 mr-1">or try:</span>
+              {EXAMPLES.map((ex) => (
+                <button key={ex.label} onClick={() => { setContent(ex.value); setMode(ex.kind); setData(null); }}
+                  className="px-2.5 py-1 rounded-full border border-line text-xs text-slate-400 hover:border-brand hover:text-brand transition">
+                  {ex.label}
+                </button>
+              ))}
+            </>
+          )}
         </div>
         {err && <p className="mt-3 text-sm text-danger">{err}</p>}
       </div>
@@ -182,9 +208,9 @@ function Analyzer() {
 
 /* ---------------- sections ---------------- */
 const DETECTORS = [
-  { icon: '✉️', title: 'Text & email', desc: 'A fine-tuned DistilBERT transformer reads the language of the message - urgency, credential lures, impersonation - the way a wary human would.' },
-  { icon: '🔗', title: 'URL forensics', desc: 'Lexical analysis (entropy, look-alike domains, brand tokens, suspicious TLDs) fused with the transformer to catch cloaked and typo-squatted links.' },
-  { icon: '🧩', title: 'Explainable signals', desc: 'Every verdict comes with the exact reasons it fired, a 0-100 risk score, and a confidence - never an opaque yes/no.' },
+  { icon: '✉️', title: 'Text & email', desc: 'A fine-tuned DistilBERT transformer reads the language of the message: urgency, credential lures, and impersonation, the way a wary human would.' },
+  { icon: '🔗', title: 'URL & domain', desc: 'Lexical forensics (look-alike domains, brand tokens, suspicious TLDs, entropy) plus live DNS and WHOIS-age intelligence to catch cloaked and freshly-registered links.' },
+  { icon: '🖼️', title: 'Image OCR', desc: 'Upload a screenshot of a login page or scam SMS; it reads the text, extracts any links, and runs them through the full pipeline.' },
 ];
 const FEATURES = [
   ['⚡', 'Real-time', 'Sub-second verdicts on a single API call - fast enough for a browser extension on every page load.'],

@@ -343,6 +343,120 @@ def _dedupe_signals(signals: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 # --------------------------------------------------------------------------- #
+# Domain intelligence (the "graph" lens): DNS presence + WHOIS age.
+# Best-effort with tight timeouts; WHOIS may be blocked on some hosts (degrades).
+# --------------------------------------------------------------------------- #
+def _domain_intel(domain: str) -> Tuple[float, List[Dict[str, Any]], Dict[str, Any]]:
+    import socket
+
+    signals: List[Dict[str, Any]] = []
+    feats: Dict[str, Any] = {}
+    delta = 0.0
+    if not domain or "." not in domain:
+        return 0.0, signals, feats
+
+    old_to = socket.getdefaulttimeout()
+    socket.setdefaulttimeout(4)
+    try:
+        try:
+            socket.getaddrinfo(domain, None)
+            feats["dns"] = "resolves"
+        except Exception:
+            feats["dns"] = "no records"
+            delta += 0.25
+            signals.append({"name": "Domain has no DNS records (does not resolve)",
+                            "severity": "high", "weight": 0.25})
+        try:
+            import datetime
+            import whois
+            created = whois.whois(domain).creation_date
+            if isinstance(created, list):
+                created = created[0] if created else None
+            if isinstance(created, datetime.datetime):
+                age = (datetime.datetime.now() - created).days
+                feats["domain_age_days"] = age
+                if age < 30:
+                    delta += 0.35
+                    signals.append({"name": f"Domain registered only {age} days ago (very new)",
+                                    "severity": "high", "weight": 0.35})
+                elif age < 180:
+                    delta += 0.15
+                    signals.append({"name": f"Relatively new domain ({age} days old)",
+                                    "severity": "medium", "weight": 0.15})
+                else:
+                    signals.append({"name": f"Established domain (~{max(1, age // 365)} yr old)",
+                                    "severity": "low", "weight": 0.0})
+        except Exception:
+            pass
+    finally:
+        socket.setdefaulttimeout(old_to)
+    return delta, signals, feats
+
+
+def analyze_domain(url_or_domain: str) -> "AnalyzeResponse":
+    import tldextract
+
+    ext = tldextract.extract(url_or_domain)
+    domain = f"{ext.domain}.{ext.suffix}" if ext.suffix else url_or_domain.strip()
+    seed = url_or_domain if "://" in url_or_domain else "http://" + domain
+    lex_risk, lex_signals, features = _url_lexical(seed)
+    delta, d_signals, d_feats = _domain_intel(domain)
+    risk = min(1.0, lex_risk + delta)
+    features.update(d_feats)
+    verdict = _verdict(risk, URL_THRESHOLD)
+    signals = _dedupe_signals(lex_signals + d_signals) or [
+        {"name": "No strong phishing indicators found", "severity": "low", "weight": 0.0}]
+    return AnalyzeResponse(
+        type="domain", input=domain, verdict=verdict, is_phishing=(verdict == "phishing"),
+        risk_score=round(risk * 100, 1), confidence=round((risk if verdict != "safe" else 1 - risk), 3),
+        model="domain-intelligence", signals=signals, features=features,
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Image analysis (the "visual" lens): OCR the image, then reuse text/URL detection.
+# Catches phishing screenshots (fake login pages, scam-SMS images).
+# --------------------------------------------------------------------------- #
+def _ocr_image(image_bytes: bytes) -> str:
+    from io import BytesIO
+
+    import pytesseract
+    from PIL import Image
+
+    img = Image.open(BytesIO(image_bytes))
+    if img.mode != "RGB":
+        img = img.convert("RGB")
+    return pytesseract.image_to_string(img)
+
+
+def analyze_image(image_base64: str) -> "AnalyzeResponse":
+    import base64
+
+    def _bail(msg: str, risk: float = 0.0):
+        return AnalyzeResponse(type="image", input=f"({msg})", verdict="safe", is_phishing=False,
+                               risk_score=risk, confidence=0.6, model="image-ocr",
+                               signals=[{"name": msg, "severity": "low", "weight": 0.0}])
+    try:
+        raw = base64.b64decode(image_base64.split(",")[-1])
+    except Exception:
+        return _bail("Could not decode image")
+    try:
+        text = _ocr_image(raw).strip()
+    except Exception as exc:
+        return _bail(f"OCR unavailable: {str(exc)[:80]}")
+    if not text:
+        return _bail("No readable text found in image", risk=5.0)
+
+    res = analyze_text(text)
+    res.type = "image"
+    res.model = "image-ocr + " + (res.model or "")
+    res.input = "OCR: " + (text[:300] + "…" if len(text) > 300 else text)
+    res.signals = [{"name": f"Read {len(text.split())} words of text from the image (OCR)",
+                    "severity": "low", "weight": 0.0}] + res.signals
+    return res
+
+
+# --------------------------------------------------------------------------- #
 # API schema
 # --------------------------------------------------------------------------- #
 class AnalyzeRequest(BaseModel):
@@ -356,6 +470,14 @@ class TextRequest(BaseModel):
 
 class UrlRequest(BaseModel):
     url: str
+
+
+class DomainRequest(BaseModel):
+    domain: str
+
+
+class ImageRequest(BaseModel):
+    image_base64: str
 
 
 class AnalyzeResponse(BaseModel):
@@ -414,6 +536,16 @@ def analyze_text_ep(req: TextRequest):
 @app.post("/analyze_url", response_model=AnalyzeResponse)
 def analyze_url_ep(req: UrlRequest):
     return analyze_url(req.url)
+
+
+@app.post("/analyze_domain", response_model=AnalyzeResponse)
+def analyze_domain_ep(req: DomainRequest):
+    return analyze_domain(req.domain)
+
+
+@app.post("/analyze_image", response_model=AnalyzeResponse)
+def analyze_image_ep(req: ImageRequest):
+    return analyze_image(req.image_base64)
 
 
 @app.on_event("startup")
