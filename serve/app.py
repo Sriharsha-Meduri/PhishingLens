@@ -39,6 +39,9 @@ LOCAL_TOKENIZER_DIR = os.getenv("LOCAL_TOKENIZER_DIR", "")
 TEXT_THRESHOLD = float(os.getenv("TEXT_THRESHOLD", "0.50"))
 URL_THRESHOLD = float(os.getenv("URL_THRESHOLD", "0.50"))
 SUSPICIOUS_LOW = float(os.getenv("SUSPICIOUS_LOW", "0.35"))  # band between safe and phishing
+# The DistilBERT model is reliable on longer text but erratic on short/casual input
+# (it confidently mis-scores short benign messages), so only trust it past this length.
+MODEL_MIN_WORDS = int(os.getenv("MODEL_MIN_WORDS", "18"))
 
 # Network probing (DNS/redirect) is off by default so the API stays fast and
 # safe on a shared host. Lexical + model signals need no network.
@@ -115,6 +118,10 @@ _TEXT_PATTERNS: List[Tuple[str, float, str]] = [
     (r"(gift\s+card|prize|winner|lottery|reward)", 0.25, "Prize/reward lure"),
     (r"(bank|paypal|wallet|invoice|wire transfer|bitcoin)", 0.15, "Financial pressure language"),
     (r"dear\s+(customer|user|account holder)", 0.15, "Impersonal generic greeting"),
+    (r"(reply|share|send|provide|confirm)\s+(with\s+)?(your\s+)?(pin|otp|one[- ]?time)", 0.35, "Asks you to share a PIN/OTP"),
+    (r"(parcel|package|shipment|courier).{0,50}(customs|held|redeliver|reschedul|unpaid|pending.{0,15}fee|small\s+fee)", 0.42, "Parcel/delivery-fee scam pattern"),
+    (r"(you\s+have\s+won|you'?re\s+a\s+winner|congratulations.{0,25}won)", 0.30, "'You have won' lure"),
+    (r"(tax\s+refund|claim\s+your\s+refund|rebate|refund\s+is\s+pending)", 0.22, "Refund/rebate lure"),
 ]
 
 
@@ -287,29 +294,36 @@ def analyze_url(url: str) -> "AnalyzeResponse":
 def analyze_text(text: str) -> "AnalyzeResponse":
     text = text.strip()
     urls = _extract_urls(text)
-    url_results = [analyze_url(u) for u in urls]
 
     body = text
     for u in urls:
         body = body.replace(u, " ")
+    body = body.strip()
 
-    ms = _model_scores(body if body.strip() else text)
+    # If the input is essentially just a bare URL, judge it with the URL lens.
+    # The DistilBERT email model over-predicts phishing on bare URLs (it would flag
+    # netflix.com / github.com as phishing), so never run it on URL-only input.
+    if not body and len(urls) == 1:
+        return analyze_url(urls[0])
+
+    url_results = [analyze_url(u) for u in urls]
+    worst_url = max((r.risk_score / 100 for r in url_results), default=0.0)
+
+    ms = _model_scores(body) if body else None
     model_risk = ms["phishing"] if ms else None
     heur_risk, heur_signals = _text_heuristics(text)
 
-    if model_risk is not None:
-        risk = max(model_risk, heur_risk * 0.9)
-        model_name = "DistilBERT (cybersectony v2.4.1)"
-        if model_risk >= 0.5:
-            heur_signals.insert(0, {"name": f"AI model flags this text as phishing ({model_risk*100:.0f}%)",
-                                    "severity": "high", "weight": model_risk})
-    else:
-        risk = heur_risk
-        model_name = "heuristic"
-
-    # Escalate if any embedded URL is itself phishing
-    worst_url = max((r.risk_score / 100 for r in url_results), default=0.0)
-    risk = max(risk, worst_url)
+    # Heuristics + embedded-URL analysis are always reliable. The DistilBERT score
+    # is only trusted when it is *confident* (>= 0.85): on short, out-of-domain
+    # casual text it sits near 0.55 for both benign and phishing, so a mid-range
+    # score is noise and must not drive a phishing verdict on its own.
+    word_count = len(body.split()) if body else 0
+    risk = max(heur_risk, worst_url)
+    model_name = "DistilBERT (cybersectony v2.4.1)" if model_risk is not None else "heuristic"
+    if model_risk is not None and model_risk >= 0.85 and word_count >= MODEL_MIN_WORDS:
+        risk = max(risk, model_risk)
+        heur_signals.insert(0, {"name": f"AI model flags this message as phishing ({model_risk*100:.0f}%)",
+                                "severity": "high", "weight": model_risk})
     verdict = _verdict(risk, TEXT_THRESHOLD)
 
     signals = _dedupe_signals(heur_signals)
