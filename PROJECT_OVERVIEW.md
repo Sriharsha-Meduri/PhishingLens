@@ -1,6 +1,19 @@
 # 🔍 PhishingLens - Multi-Modal Phishing Detection System — Project Overview
 
-This document provides a comprehensive overview of the production-ready phishing detection system built for the Smart India Hackathon (SIH). The system implements advanced AI/ML models with 4-source fusion technology for real-time phishing detection across multiple modalities.
+> **Verified status (please read first).** This document is the original hackathon
+> vision and overstates several capabilities. The honest, verified state of the code is:
+> - **Working end to end:** a fine-tuned DistilBERT text/email/SMS classifier and an
+>   interpretable lexical URL engine, behind the consolidated `serve/app.py` API, with
+>   a matching React web app and Chrome extension. Measured accuracy is **~0.90 macro-F1
+>   on CEAS-08 email** (not "99.6%"), with temperature calibration and ~25 ms/msg on GPU.
+> - **Aspirational / not validated:** the "4-source weighted 2-of-4 fusion" is in practice
+>   a fixed rule dominated by the lexical scanner; the "GNN" is heuristic DNS/SSL/networkx
+>   code (the shipped `gnn_model.onnx` is never loaded); "YOLO brand detection" uses a
+>   generic COCO detector and does not recognise brands; and the "continuous-learning /
+>   drift-detection" script is not functional as shipped. See `IMPROVEMENTS.md` for the
+>   full, honest backlog. Treat claims below as the roadmap, not the current measured system.
+
+This document provides an overview of the phishing detection system originally built for the Smart India Hackathon (SIH).
 
 ## 🌐 Live System
 

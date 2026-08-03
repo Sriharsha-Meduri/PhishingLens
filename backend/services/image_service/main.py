@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 import base64
 import io
+import logging
 from PIL import Image
 import numpy as np
 import cv2
@@ -36,6 +37,7 @@ except Exception:
 _ocr_available = False
 _tess_last_error = None
 
+logger = logging.getLogger("image_service")
 app = FastAPI(title="Image Analysis Service", version="0.2.0")
 
 # Feature flags

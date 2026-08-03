@@ -36,3 +36,13 @@ WhatsApp*.jpg
 # Build output
 dist/
 frontend/dist/
+
+# Manuscript kept local until submission
+paper/
+PhishingLens_Paper.pdf
+PhishingLens_Paper.docx
+PhishingLens_Paper_Anonymous.pdf
+PhishingLens_Paper_Anonymous.docx
+PhishingLens_TitlePage.pdf
+PhishingLens_TitlePage.docx
+data/holdout/sms_spam.csv

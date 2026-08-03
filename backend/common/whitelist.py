@@ -47,15 +47,10 @@ class URLWhitelist:
             parsed = urlparse(url)
             domain = parsed.netloc.lower()
             
-            # Add domain and subdomains
+            # Add only the exact domain. We deliberately do NOT auto-add parent
+            # domains: whitelisting foo.herokuapp.com must not trust every
+            # *.herokuapp.com (attacker-controllable shared hosting).
             self._whitelist_domains.add(domain)
-            
-            # Add parent domains (e.g., for subdomain.example.com, also add example.com)
-            parts = domain.split('.')
-            if len(parts) > 2:
-                parent_domain = '.'.join(parts[1:])
-                self._whitelist_domains.add(parent_domain)
-                
         except Exception as e:
             print(f"⚠️ Error adding URL to whitelist: {url} - {e}")
     
@@ -75,20 +70,15 @@ class URLWhitelist:
             # Check wildcard patterns
             for whitelist_url in self._whitelist_urls:
                 if '*' in whitelist_url:
-                    # Convert wildcard to regex
-                    pattern = whitelist_url.replace('*', '.*')
-                    import re
+                    # Convert wildcard to an anchored, escaped regex (no injection).
+                    pattern = "^" + re.escape(whitelist_url).replace(r"\*", ".*") + "$"
                     if re.match(pattern, url_lower):
                         return True
-            
+
             # Extract domain
             parsed = urlparse(url)
             domain = parsed.netloc.lower()
-            
-            # Special case for .gov.in domains (wildcard pattern)
-            if domain.endswith('.gov.in'):
-                return True
-            
+
             # Check domain match
             if domain in self._whitelist_domains:
                 return True

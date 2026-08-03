@@ -43,7 +43,7 @@ services:
       T_HF: "0.74"
       T_GRAPH: "0.80"
       OTX_BASEURL: "https://otx.alienvault.com/api/v1"
-      OTX_KEY: "89daa160ca2732951fcda18435dc939685a8ebd8aafda24951251abe88b6f7b7"
+      OTX_KEY: "${OTX_KEY:-}"
       OTX_TIMEOUT_MS: "5000"
       OTX_CACHE_TTL_H: "48"
       ALLOWLIST_DOMAINS: "youtube.com,*.gov.in"

@@ -8,7 +8,7 @@ import sys
 import logging
 import requests
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, List
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent.parent
