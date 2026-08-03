@@ -1,0 +1,21 @@
+{
+  "task": "ceas08_email",
+  "dataset": "data/holdout/ceas08.csv",
+  "n": 39154,
+  "n_pos": 21842,
+  "n_neg": 17312,
+  "auc": 0.949759865360552,
+  "temperature": 3.0,
+  "threshold": 0.09,
+  "operating_point": {
+    "precision": 0.839094618523366,
+    "recall": 0.9933467006926723,
+    "f1": 0.9097283085013146,
+    "accuracy": 0.8895132042703172,
+    "fpr": 0.24288204532248692
+  },
+  "ece_raw": 0.13174313657508363,
+  "ece_calibrated": 0.07009911959821596,
+  "latency_ms_per_msg": 22.63006415916954,
+  "device": "cuda"
+}

@@ -38,7 +38,7 @@ dist/
 frontend/dist/
 
 # Manuscript kept local until submission
-paper/
+/paper/
 PhishingLens_Paper.pdf
 PhishingLens_Paper.docx
 PhishingLens_Paper_Anonymous.pdf
