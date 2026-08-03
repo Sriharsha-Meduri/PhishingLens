@@ -1,0 +1,21 @@
+{
+  "task": "email_kaggle",
+  "dataset": "data/holdout/phishing_email_kaggle.csv",
+  "n": 18647,
+  "n_pos": 7325,
+  "n_neg": 11322,
+  "auc": 0.9988377214797611,
+  "temperature": 1.9000000000000001,
+  "threshold": 0.6599999999999999,
+  "operating_point": {
+    "precision": 0.9660064239828694,
+    "recall": 0.9903951701427003,
+    "f1": 0.9780487804878049,
+    "accuracy": 0.9826254826254827,
+    "fpr": 0.022359154929577466
+  },
+  "ece_raw": 0.014915949433354544,
+  "ece_calibrated": 0.00884669933369017,
+  "latency_ms_per_msg": 22.6114826764336,
+  "device": "cuda"
+}

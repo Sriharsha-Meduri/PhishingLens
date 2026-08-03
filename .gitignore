@@ -46,3 +46,5 @@ PhishingLens_Paper_Anonymous.docx
 PhishingLens_TitlePage.pdf
 PhishingLens_TitlePage.docx
 data/holdout/sms_spam.csv
+data/holdout/phishing_email_kaggle.csv
+eval/*.log
